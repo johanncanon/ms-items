@@ -9,10 +9,12 @@ import org.springframework.stereotype.Service;
 import com.johanncanon.springcloud.ms.items.clients.ProductFeignClient;
 import com.johanncanon.springcloud.ms.items.models.Item;
 
+import feign.FeignException;
+
 @Service
 public class ItemServiceFaign implements ItemService{
 
-    private final ProductFeignClient productFeignClient;
+    private ProductFeignClient productFeignClient;
 
     public ItemServiceFaign(ProductFeignClient productFeignClient) {
         this.productFeignClient = productFeignClient;
@@ -28,9 +30,14 @@ public class ItemServiceFaign implements ItemService{
 
     @Override
     public Optional<Item> findById(Long id) {
-        var product = productFeignClient.details(id);
-        if( product == null ) return Optional.empty();
-        return Optional.of( new Item( product, new Random().nextInt(10) +1 ));
+        try {
+            var product = productFeignClient.details(id);
+            return Optional.of( new Item( product, new Random().nextInt(10) +1 ));
+            
+        } catch (FeignException e) {
+            return Optional.empty();   
+        }
+        
     }
 
 }
